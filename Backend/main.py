@@ -66,7 +66,7 @@ auth_router = APIRouter()
 # @auth_router.post("/api/v1")
 
 
-@auth_router.get("/")
+app.get("/")
 async def root():
     return {"message": "FastAPI is running"}    
  
