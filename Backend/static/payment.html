@@ -467,6 +467,8 @@
           localStorage.setItem("owner_email", owner_email);
           localStorage.setItem("amount_to_send", userAmount);
 
+          console.log("amount", userAmount);
+
           emailInput.value = userEmail || "N/A";
           amountInput.value = userAmount
             ? `₦${Number(userAmount).toLocaleString()}`
@@ -602,6 +604,8 @@
           let amount = Number(localStorage.getItem("amount_to_send"));
           const postLink = `${BASE_URL}/api/v1/transactions`;
 
+          console.log("amountsss", amount);
+
           try {
             status = !status ? "failed to include status" : status;
 
@@ -610,6 +614,8 @@
               amount,
               status,
             };
+            console.log("amount", amount);
+            
             const postToDb = await fetch(postLink, {
               method: "POST",
               headers: {
