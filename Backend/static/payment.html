@@ -471,7 +471,7 @@
 
           emailInput.value = userEmail || "N/A";
           amountInput.value = userAmount
-            ? `₦${Number(userAmount).toLocaleString()}`
+            ? `₦${(Number(userAmount)/ 100).toLocaleString()}`
             : "0";
           console.log("amount", amount);
 
@@ -615,7 +615,7 @@
               status,
             };
             console.log("amount", amount);
-            
+
             const postToDb = await fetch(postLink, {
               method: "POST",
               headers: {
