@@ -435,6 +435,11 @@
         // everything.classList.add("hidden");
         // whole_form.classList.add("items-center", "justify-center");
 
+        function formatAmount(kobo) {
+          return `₦${(Number(kobo) / 100).toLocaleString()}`;
+        }
+
+
         const transactionRefId = new URLSearchParams(
           window.location.search
         ).get("id");
@@ -470,7 +475,7 @@
           console.log("amount", userAmount);
 
           emailInput.value = userEmail || "N/A";
-          amountInput.value = userAmount
+          amountInput.value = formatAmount(userAmount)
             ? `₦${(Number(userAmount)/ 100).toLocaleString()}`
             : "0";
           console.log("amount", amount);
@@ -709,7 +714,7 @@
                 Swal.fire({
                   title: "Payment Successful 🎉",
                   html: `
-                  <p><b>Amount:</b> ${Number(
+                  <p><b>Amount:</b> ${formatAmount(
                     data?.transaction?.amount || 0
                   ).toLocaleString()}</p>
                   <p><b>Reference:</b> ${localStorage.getItem("payment_id")}</p>
@@ -1114,7 +1119,7 @@
                   }
 
                   console.log("from show generated paymenr value", amountValue);
-                  amountTransfered.textContent = `${dataToBeUsed.virtual_account.amount}`;
+                  amountTransfered.textContent = formatAmount( `${dataToBeUsed.virtual_account.amount}`);
                   loader.classList.add("hidden");
                   everything.classList.remove("hidden");
                   whole_form.classList.remove("items-center");
