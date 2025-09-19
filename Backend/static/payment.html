@@ -476,7 +476,7 @@
 
           emailInput.value = userEmail || "N/A";
           amountInput.value = formatAmount(userAmount)
-            ? `₦${(Number(userAmount)/ 100).toLocaleString()}`
+            ? `₦${Number(userAmount).toLocaleString()}`
             : "0";
           console.log("amount", amount);
 
