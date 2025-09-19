@@ -439,6 +439,7 @@
           window.location.search
         ).get("id");
         console.log("id", transactionRefId);
+        console.log("amount", amountInput)
         localStorage.setItem("payment_id", transactionRefId);
 
         if (!transactionRefId)
@@ -470,6 +471,7 @@
           amountInput.value = userAmount
             ? `₦${Number(userAmount).toLocaleString()}`
             : "0";
+          console.log("amount", amount);
 
           loader.classList.add("hidden");
           everything.classList.remove("hidden");
@@ -837,6 +839,7 @@
           amount: userAmount,
           owner_email,
         } = await fetchDataFromPaymentId(transactionRefId);
+        console.log("amount", amount)
 
         const user = JSON.parse(localStorage.getItem("user"));
 
@@ -999,6 +1002,7 @@
                 cvv: cvv.value,
                 payment_id: localStorage.getItem("payment_id"),
               };
+              console.log("amount", amount)
 
               const res = await fetch(
                 "https://blink-pay-bank-app-backend.onrender.com/api/v1/account/pay-with-card",
