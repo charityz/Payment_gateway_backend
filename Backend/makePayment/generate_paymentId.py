@@ -37,6 +37,7 @@ async def generate_payment(request: Request):
         data["email"] = req["email"]
         data["amount"] = req["amount"]
         data["owner_email"] = req["owner_email"]
+        data["order_id"] = req["order_id"]
         
         await make_payments_collection.insert_one(data)
         
