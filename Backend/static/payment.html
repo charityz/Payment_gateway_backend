@@ -465,6 +465,7 @@
             amount: userAmount,
             owner_email,
           } = await fetchDataFromPaymentId(transactionRefId);
+          console,log("useramount", userAmount)
 
           // Stores values
           localStorage.setItem("owner_email", owner_email);

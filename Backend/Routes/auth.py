@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Response, Request, BackgroundTasks, Query, status
 from Backend.utils import create_access_token, hash_password, send_email_with_default_password, generate_access_code, generate_reference
 from passlib.context import CryptContext 
-from Backend.database import users_collection, EXPIRY_MINUTES, SECRET_KEY, encrypt_pending_data, decrypt_pending_data, notifications_collection, transactions_collection, ALGORITHM
+from Backend.database import users_collection, EXPIRY_MINUTES, SECRET_KEY, encrypt_pending_data, decrypt_pending_data, notifications_collection, transactions_collection, ALGORITHM, db
 from Backend.Schemas.schemas import *
 from datetime import datetime
 from datetime import datetime, timedelta
@@ -10,9 +10,9 @@ from bson import ObjectId
 import traceback
 from jose import JWTError, jwt
 from typing import List
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from Backend.makePayment import makepayment   
 
 
 
@@ -422,10 +422,6 @@ async def create_transaction(
 
 
 
-
-
-# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/signin")
-
 @auth_router.get("/api/v1/all_transactions")
 async def get_transactions(
     page: int = 1,
@@ -465,3 +461,40 @@ async def get_transactions(
         "prev_page": page - 1 if page > 1 else None,
         "next_page": page + 1 if skip + limit < total else None,
     }
+
+
+
+
+
+@auth_router.get("/api/v1/payverge/transaction/verify/{reference}")
+async def verify_transaction(reference: str):
+    # === Look up transaction ===
+    transaction = db["makepayment"].find_one({"reference": reference})
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+
+    # === Build response exactly like Paystack ===
+    return {
+        "status": True,
+        "message": "Verification successful",
+        "data": {
+            "id": str(transaction["_id"]),
+            "domain": "test",   # or "live" depending on env
+            "status": transaction.get("status"),
+            "reference": transaction.get("reference"),
+            "amount": transaction.get("amount"),
+            "currency": transaction.get("currency", "NGN"),
+            "gateway_response": (
+                "Successful" if transaction.get("status") == "success"
+                else "Declined" if transaction.get("status") == "failed"
+                else "Pending"
+            ),
+            "paid_at": str(transaction.get("paid_at")) if transaction.get("paid_at") else None,
+            "created_at": str(transaction.get("created_at")),
+            "updated_at": str(datetime.datetime.now()),
+            "channel": transaction.get("payment_method", "card"),
+            "ip_address": transaction.get("ip_address"),
+            "fees": transaction.get("fees", 0),
+        }
+    }
+

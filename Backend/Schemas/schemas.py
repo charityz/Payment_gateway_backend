@@ -51,6 +51,7 @@ class GeneratePaymentId(BaseModel):
     payment_id: int
     status: str = Field (default="pending")
     owner_email: EmailStr
+    order_id: str 
     
 class NotificationIn(BaseModel):
     user_id: str
