@@ -12,7 +12,10 @@ from jose import JWTError, jwt
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from Backend.makePayment import makepayment   
+from Backend.database import make_payments_collection
+# from fastapi import APIRouter, Query, HTTPException
+from fastapi.responses import JSONResponse
+ 
 
 
 
@@ -235,6 +238,41 @@ async def verify_login_otp(data: dict, response: Response):
         "name": user.get("last_name", ""),
         "access_token": access_token 
     }
+
+
+
+
+
+@auth_router.get("/api/v1/verify_payment")
+async def verify_payment(payment_id: str = Query(...)):
+    """
+    Verify a payment by payment_id saved in make_payments_collection
+    """
+    payment = await make_payments_collection.find_one({"payment_id": payment_id})
+    if not payment:
+        raise HTTPException(status_code=404, detail="Payment not found")
+
+    all_payments = await make_payments_collection.find().to_list(length=100)
+    print([p["payment_id"] for p in all_payments])
+
+    # Return a Paystack-like response
+    return JSONResponse(
+        content={
+            "status": True,
+            "message": "Payment fetched successfully",
+            "data": {
+                "id": payment.get("payment_id"),
+                "status": payment.get("status", "pending"),  # fallback to pending if not set
+                "amount": payment.get("amount"),
+                "email": payment.get("email"),
+                "owner_email": payment.get("owner_email"),
+                "access_code": payment.get("access_code"),
+                "reference_code": payment.get("reference_code"),
+                "order_id": payment.get("order_id")
+            }
+        }
+    )
+
 
 
 # DEFAULT PASSWORD
