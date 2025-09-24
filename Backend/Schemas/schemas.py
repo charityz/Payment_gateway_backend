@@ -46,12 +46,12 @@ class CardModel(BaseModel):
 class GeneratePaymentId(BaseModel):
     email:  EmailStr
     amount: float
-    access_code: str
-    reference_code: str
-    payment_id: int
+    access_code: Optional[str] = None
+    reference_code: Optional[str] = None
+    payment_id: Optional[int] = None
     status: str = Field (default="pending")
     owner_email: EmailStr
-    order_id: str 
+    order_id: Optional[str] = None 
     
 class NotificationIn(BaseModel):
     user_id: str

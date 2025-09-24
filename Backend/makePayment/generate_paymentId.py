@@ -19,45 +19,87 @@ url = "https://payment-gateway-3.onrender.com/api/v1/show_payment"
 
 @auth_router.post("/api/v1")
 
+
 @auth_router.post("/api/v1/generate_payment")
 async def generate_payment(request: Request):
     try:
-        req = await request.body()
-        req = eval(req.decode())
-    
-        
+        req = await request.json()  # ✅ safer than eval
+
+        # Required fields
+        if "email" not in req or "amount" not in req or "owner_email" not in req:
+            raise HTTPException(status_code=400, detail="Email, amount, and owner_email are required")
+
         payment_id = str(uuid1())
         access_code = generate_access_code()
         reference_code = generate_reference()
-        data={}
 
-        data["payment_id"] = payment_id
-        data["access_code"] = access_code
-        data["reference_code"] = reference_code
-        data["email"] = req["email"]
-        data["amount"] = req["amount"]
-        data["owner_email"] = req["owner_email"]
-        data["order_id"] = req["order_id"]
-        
+        data = {
+            "payment_id": payment_id,
+            "access_code": access_code,
+            "reference_code": reference_code,
+            "email": req["email"],
+            "amount": req["amount"],
+            "owner_email": req["owner_email"],
+        }
+
+        # only add order_id if provided
+        if "order_id" in req and req["order_id"]:
+            data["order_id"] = req["order_id"]
+
         await make_payments_collection.insert_one(data)
-        
+
         payment_link = f"{url}?id={payment_id}"
 
-        # # send link via email
-        # # await send_payment_link(data.email, payment_link, data.amount)
-
         return {
-        "message": "Payment link generated",
-        "payment_link": payment_link,
-       "access_code": access_code,
-        "reference_code": reference_code, 
-         }
+            "message": "Payment link generated",
+            "payment_link": payment_link,
+            "access_code": access_code,
+            "reference_code": reference_code,
+        }
 
-    except KeyError:
-        raise HTTPException(status_code=400, detail="Email and amount are required")
-        # return {
-        #     "error": "Email and amount are required"
-        # }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating payment: {str(e)}")
+
+
+# @auth_router.post("/api/v1/generate_payment")
+# async def generate_payment(request: Request):
+#     try:
+#         req = await request.body()
+#         req = eval(req.decode())
+    
+        
+#         payment_id = str(uuid1())
+#         access_code = generate_access_code()
+#         reference_code = generate_reference()
+#         data={}
+
+#         data["payment_id"] = payment_id
+#         data["access_code"] = access_code
+#         data["reference_code"] = reference_code
+#         data["email"] = req["email"]
+#         data["amount"] = req["amount"]
+#         data["owner_email"] = req["owner_email"]
+#         data["order_id"] = req["order_id"]
+        
+#         await make_payments_collection.insert_one(data)
+        
+#         payment_link = f"{url}?id={payment_id}"
+
+#         # # send link via email
+#         # # await send_payment_link(data.email, payment_link, data.amount)
+
+#         return {
+#         "message": "Payment link generated",
+#         "payment_link": payment_link,
+#        "access_code": access_code,
+#         "reference_code": reference_code, 
+#          }
+
+#     except KeyError:
+#         raise HTTPException(status_code=400, detail="Email and amount are required")
+#         # return {
+#         #     "error": "Email and amount are required"
+#         # }
 
 
 @auth_router.get("/api/v1/get_payment")
