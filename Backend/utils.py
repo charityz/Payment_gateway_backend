@@ -8,6 +8,9 @@ from email.message import EmailMessage
 import aiosmtplib
 import random 
 import string
+import os
+import sendgrid
+from sendgrid.helpers.mail import Mail
 
 
 def hash_password(password: str) -> str:
@@ -62,12 +65,10 @@ def verify_token(token: str):
         return None
     
     
-import os
-import sendgrid
-from sendgrid.helpers.mail import Mail
+
 
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")  # Add this to Render env vars
-EMAIL_FROM = EMAIL_FROM  # can be your Gmail or custom domain
+EMAIL_FROM = os.getenv("EMAIL_FROM")  # can be your Gmail or custom domain
 
 async def send_otp_email(receiver_email: str, otp: str):
     subject = "Your OTP Verification Code"
