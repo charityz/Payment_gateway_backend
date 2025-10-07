@@ -62,35 +62,63 @@ def verify_token(token: str):
         return None
     
     
+import os
+import sendgrid
+from sendgrid.helpers.mail import Mail
+
+SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")  # Add this to Render env vars
+EMAIL_FROM = EMAIL_FROM  # can be your Gmail or custom domain
+
 async def send_otp_email(receiver_email: str, otp: str):
-    message = EmailMessage()
-    message["From"] = EMAIL_FROM
-    message["To"] = receiver_email
-    message["Subject"] = "Your OTP Verification Code"
-    message.set_content(f"Your OTP is: {otp}. It will expire in {EXPIRY_MINUTES} minutes.")
+    subject = "Your OTP Verification Code"
+    content = f"Your OTP is: <b>{otp}</b>. It will expire in {EXPIRY_MINUTES} minutes."
 
     try:
-        print(f"[EMAIL] Connecting to {EMAIL_HOST}:{EMAIL_PORT} to send OTP to {receiver_email}...")
-        await aiosmtplib.send(
-            message,
-            hostname=EMAIL_HOST,
-            port=EMAIL_PORT,
-            start_tls=True,
-            username=EMAIL_FROM,
-            password=EMAIL_PASSWORD,
-            timeout=20  
+        sg = sendgrid.SendGridAPIClient(api_key=SENDGRID_API_KEY)
+        email = Mail(
+            from_email=EMAIL_FROM,
+            to_emails=receiver_email,
+            subject=subject,
+            html_content=content
         )
+        sg.send(email)
         print(f"[EMAIL] OTP email sent successfully to {receiver_email}")
         return True
 
-    except aiosmtplib.SMTPConnectError as e:
-        print(f"[EMAIL ERROR] Could not connect to SMTP server: {e}")
-    except aiosmtplib.SMTPAuthenticationError as e:
-        print(f"[EMAIL ERROR] Authentication failed: {e}")
     except Exception as e:
-        print(f"[EMAIL ERROR] Unexpected error sending email to {receiver_email}: {e}")
+        print(f"[EMAIL ERROR] Failed to send OTP to {receiver_email}: {e}")
+        return False
+    
+    
+# async def send_otp_email(receiver_email: str, otp: str):
+#     message = EmailMessage()
+#     message["From"] = EMAIL_FROM
+#     message["To"] = receiver_email
+#     message["Subject"] = "Your OTP Verification Code"
+#     message.set_content(f"Your OTP is: {otp}. It will expire in {EXPIRY_MINUTES} minutes.")
 
-    return False
+#     try:
+#         print(f"[EMAIL] Connecting to {EMAIL_HOST}:{EMAIL_PORT} to send OTP to {receiver_email}...")
+#         await aiosmtplib.send(
+#             message,
+#             hostname=EMAIL_HOST,
+#             port=EMAIL_PORT,
+#             start_tls=True,
+#             username=EMAIL_FROM,
+#             password=EMAIL_PASSWORD,
+#             timeout=20  
+#         )
+#         print(f"[EMAIL] OTP email sent successfully to {receiver_email}")
+#         return True
+
+#     except aiosmtplib.SMTPConnectError as e:
+#         print(f"[EMAIL ERROR] Could not connect to SMTP server: {e}")
+#     except aiosmtplib.SMTPAuthenticationError as e:
+#         print(f"[EMAIL ERROR] Authentication failed: {e}")
+#     except Exception as e:
+#         print(f"[EMAIL ERROR] Unexpected error sending email to {receiver_email}: {e}")
+
+#     return False
 
 
 async def send_email_with_default_password(receiver_email: str, default_password: str):
